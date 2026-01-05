@@ -30,19 +30,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
+        // Desactivar CSRF porque usamos JWT
         http.csrf(csrf -> csrf.disable());
 
+        // Stateless: no usamos sesiones
         http.sessionManagement(sm ->
                 sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         );
 
+        // Configuración de rutas
         http.authorizeHttpRequests(auth -> auth
 
                 // -----------------------------------------
-                // ENDPOINTS PÚBLICOS (Login y Register)
+                // ENDPOINTS PÚBLICOS (Login, Register y root)
                 // -----------------------------------------
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/").permitAll()
+                .requestMatchers("/", "/health").permitAll()   // <-- /health agregado para Render
 
                 // -----------------------------------------
                 // GET públicos
@@ -60,6 +63,7 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/webjars/**").permitAll()
 
+                // H2 Console (solo si la usas)
                 .requestMatchers("/h2-console/**").permitAll()
 
                 // -----------------------------------------
@@ -75,13 +79,16 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
         );
 
+        // Permitir frames (para H2 Console)
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
+        // Agregar filtro JWT antes del filtro de usuario/clave
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    // Configuración de autenticación
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -101,4 +108,3 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 }
-
