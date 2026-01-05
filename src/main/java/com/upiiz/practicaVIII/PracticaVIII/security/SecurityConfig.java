@@ -37,9 +37,9 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 // ENDPOINTS PÚBLICOS
+                .requestMatchers("/", "/health", "/actuator/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
                 // GET públicos
                 .requestMatchers(HttpMethod.GET, "/api/jugadores").permitAll()
@@ -57,6 +57,7 @@ public class SecurityConfig {
         );
 
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
+
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -70,7 +71,7 @@ public class SecurityConfig {
         return provider;
     }
 
-    @Bean
+    @Beangit
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
