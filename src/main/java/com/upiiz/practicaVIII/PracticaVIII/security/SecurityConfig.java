@@ -42,6 +42,7 @@ public class SecurityConfig {
                 // ENDPOINTS PÚBLICOS (Login y Register)
                 // -----------------------------------------
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/").permitAll()
 
                 // -----------------------------------------
                 // GET públicos
