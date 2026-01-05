@@ -37,9 +37,12 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 // ENDPOINTS PÚBLICOS
-                .requestMatchers("/", "/health", "/actuator/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/", "/health", "/actuator/**",
+                        "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
+                // Permitir OPTIONS y HEAD para Render
+                .requestMatchers(HttpMethod.OPTIONS, "/", "/health", "/actuator/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/", "/health", "/actuator/**").permitAll()
 
                 // GET públicos
                 .requestMatchers(HttpMethod.GET, "/api/jugadores").permitAll()
@@ -52,10 +55,14 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/equipos").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/entrenadores").authenticated()
 
+                // POST de login/register públicos
+                .requestMatchers("/api/auth/**").permitAll()
+
                 // Cualquier otro request requiere JWT
                 .anyRequest().authenticated()
         );
 
+        // Para h2-console y evitar frame issues
         http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -71,7 +78,7 @@ public class SecurityConfig {
         return provider;
     }
 
-    @Beangit
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
