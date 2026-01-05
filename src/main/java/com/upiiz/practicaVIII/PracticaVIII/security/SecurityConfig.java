@@ -29,7 +29,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http.csrf(csrf -> csrf.disable());
 
         http.sessionManagement(sm ->
@@ -37,42 +36,22 @@ public class SecurityConfig {
         );
 
         http.authorizeHttpRequests(auth -> auth
-
-                // -----------------------------------------
-                // ENDPOINTS PÚBLICOS (Login, Register y Health)
-                // -----------------------------------------
+                // ENDPOINTS PÚBLICOS
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/").permitAll()
-                .requestMatchers("/health").permitAll()
+                .requestMatchers("/", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
 
-                // -----------------------------------------
                 // GET públicos
-                // -----------------------------------------
                 .requestMatchers(HttpMethod.GET, "/api/jugadores").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/equipos").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/ligas").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/entrenadores").permitAll()
 
-                // -----------------------------------------
-                // Swagger público
-                // -----------------------------------------
-                .requestMatchers("/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/swagger-resources/**",
-                        "/webjars/**").permitAll()
-
-                .requestMatchers("/h2-console/**").permitAll()
-
-                // -----------------------------------------
-                // POST protegidos por JWT
-                // -----------------------------------------
+                // POST protegidos
                 .requestMatchers(HttpMethod.POST, "/api/jugadores").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/equipos").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/entrenadores").authenticated()
 
-                // -----------------------------------------
-                // Cualquier otro request necesita token
-                // -----------------------------------------
                 .anyRequest().authenticated()
         );
 

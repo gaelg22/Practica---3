@@ -1,61 +1,42 @@
 package com.upiiz.practicaVIII.PracticaVIII.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
 
     private final Key key;
-    private final long expirationMs;
 
-    public JwtUtil(@Value("${app.jwt.secret}") String secret,
-                   @Value("${app.jwt.expiration-ms}") long expirationMs) {
+    @Value("${app.jwt.expiration-ms}")
+    private long expirationMs;
+
+    public JwtUtil(@Value("${APP_JWT_SECRET}") String secret) {
+        // Crear key seguro >= 256 bits
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
-        this.expirationMs = expirationMs;
     }
 
-    public String generateToken(String username, List<String> roles) {
-        long now = System.currentTimeMillis();
+    public String generateToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
-                .addClaims(Map.of("roles", roles))
-                .setIssuedAt(new Date(now))
-                .setExpiration(new Date(now + expirationMs))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
-    }
-
     public String extractUsername(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-        return claims.getSubject();
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<String> extractRoles(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-        Object r = claims.get("roles");
-        if (r instanceof List) {
-            return ((List<?>) r).stream().map(Object::toString).collect(Collectors.toList());
-        }
-        return List.of();
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 }
-
